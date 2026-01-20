@@ -1,3 +1,4 @@
+%%writefile guardian_zenith_final.py
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -62,11 +63,35 @@ m2.metric("Sentinel Sentiment", status)
 m3.metric("RSI Strength", f"{rsi:.2f}", delta=risk)
 m4.metric("Vault Balance", f"${current_val:,.2f}", delta=f"${profit:,.2f}")
 
-# 7. UI: Main Area Tabs
+# 7. UI: Main Area Tabs (UPGRADED FOR DAY 16)
 tab1, tab2, tab3 = st.tabs(["📈 Market Visuals", "📜 Permanent Logs", "📰 Intelligence Feed"])
 
 with tab1:
-    st.subheader("Price Action Analysis")
+    st.subheader("📈 Price Action & 🕰️ Strategy Time Machine")
+    
+    # --- DAY 16: 1-Year Backtest Logic ---
+    test_data = yf.download(target_asset, period="1y", interval="1d", progress=False)
+    test_data['Fast_MA'] = test_data['Close'].rolling(window=25).mean()
+    test_data['Slow_MA'] = test_data['Close'].rolling(window=30).mean()
+    
+    # Calculate Returns
+    test_data['Signal'] = (test_data['Fast_MA'] > test_data['Slow_MA']).astype(int)
+    test_data['Daily_Return'] = test_data['Close'].pct_change()
+    test_data['Strategy_Return'] = test_data['Signal'].shift(1) * test_data['Daily_Return']
+    
+    cumulative_roi = (1 + test_data['Strategy_Return'].fillna(0)).cumprod() - 1
+    final_roi_pct = cumulative_roi.iloc[-1] * 100
+    
+    # UI Layout for Backtest
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        st.metric("1-Year Strategy ROI", f"{final_roi_pct:.2f}%")
+        st.caption("Strategy: 25/30 Day MA Cross")
+    with c2:
+        st.line_chart(cumulative_roi, use_container_width=True)
+    
+    st.divider()
+    st.subheader("Live 5-Day Price Action")
     st.line_chart(data['Close'], use_container_width=True)
 
 with tab2:
