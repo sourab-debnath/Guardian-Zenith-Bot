@@ -1,4 +1,4 @@
-%%writefile guardian_zenith_final.py
+guardian_zenith_final.py
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -108,3 +108,4 @@ with tab3:
         with st.expander(f"📌 {news['title']}"):
             st.write(f"**Publisher:** {news['publisher']}")
             st.link_button("View Full Report", news['link'])
+
